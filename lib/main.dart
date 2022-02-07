@@ -1,5 +1,6 @@
 // ignore_for_file: deprecated_member_use
 
+import 'package:current_user_location/dashboard.dart';
 import 'package:flutter/material.dart';
 import 'package:geocoding/geocoding.dart';
 import 'package:geolocator/geolocator.dart';
@@ -27,7 +28,7 @@ class _MyAppState extends State<MyApp> {
           primarySwatch: Colors.blue,
           visualDensity: VisualDensity.adaptivePlatformDensity,
         ),
-        home: const HomePage());
+        home: const DashBoardScreen());
   }
 }
 
@@ -138,11 +139,11 @@ class _HomePageState extends State<HomePage> {
     String googleUrl =
         "https://www.google.com/maps/search/?api=1&query=$latitude,$longitude";
 
-    if (await canLaunch(googleUrl)) {
-      await launch(googleUrl);
-    } else {
-      throw ("couldn't open application");
-    }
+    // if (await canLaunch(googleUrl)) {
+    await launch(googleUrl);
+    // } else {
+    // throw ("couldn't open application");
+    // }
   }
 
   // ! TO GET CURRENT POSITION---------->
@@ -158,51 +159,53 @@ class _HomePageState extends State<HomePage> {
       Fluttertoast.showToast(
           msg: 'Please Enable Location Service', textColor: Colors.white);
     }
-    if (permissionGranted == true) {
-      Fluttertoast.showToast(
-          msg: 'Location permissions are already given.',
-          textColor: Colors.white);
-    } else {
-      permission = await Geolocator.checkPermission();
+    // if (permissionGranted == true) {
+    //   Fluttertoast.showToast(
+    //       msg: 'Location permissions are already given.',
+    //       textColor: Colors.white);
+    // }
+    // else {
+    permission = await Geolocator.checkPermission();
 
+    if (permission == LocationPermission.denied) {
+      permission = await Geolocator.requestPermission();
       if (permission == LocationPermission.denied) {
-        permission = await Geolocator.requestPermission();
-        if (permission == LocationPermission.denied) {
-          Fluttertoast.showToast(
-              msg: 'Location Permission required', textColor: Colors.white);
-        }
-      }
-      if (permission == LocationPermission.deniedForever) {
         Fluttertoast.showToast(
-            msg:
-                'Location permissions are permanently denied, we cannot request permissions.',
-            textColor: Colors.white);
-      }
-
-      if (permission == LocationPermission.always) {
-        Position position = await Geolocator.getCurrentPosition(
-            desiredAccuracy: LocationAccuracy.high);
-
-        permissionGranted = true;
-
-        try {
-          List<Placemark> placemark = await placemarkFromCoordinates(
-              position.latitude, position.longitude);
-          Placemark place = placemark[4];
-
-          setState(() {
-            latitude = "${position.latitude}";
-            longitude = "${position.longitude}";
-            currentpostion = position;
-            currentAddress =
-                "${place.subLocality}, ${place.locality}, ${place.country}";
-          });
-        } catch (e) {
-          print(e);
-        }
-        return position;
+            msg: 'Location Permission required', textColor: Colors.white);
       }
     }
+    if (permission == LocationPermission.deniedForever) {
+      Fluttertoast.showToast(
+          msg:
+              'Location permissions are permanently denied, we cannot request permissions.',
+          textColor: Colors.white);
+    }
+
+    // if (permission == LocationPermission.always) {
+    Position position = await Geolocator.getCurrentPosition(
+        desiredAccuracy: LocationAccuracy.high);
+
+    permissionGranted = true;
+
+    try {
+      List<Placemark> placemark =
+          await placemarkFromCoordinates(position.latitude, position.longitude);
+      Placemark place = placemark[4];
+
+      setState(() {
+        latitude = "${position.latitude}";
+        longitude = "${position.longitude}";
+        currentpostion = position;
+        currentAddress =
+            "${place.subLocality}, ${place.locality}, ${place.country}";
+        print("${latitude} ${longitude}");
+      });
+    } catch (e) {
+      print(e);
+    }
+    return position;
+    // }
+    // }
   }
 
   // void getCurrentLocation() async {
